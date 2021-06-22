@@ -16,3 +16,14 @@ func TestRetry(t *testing.T) {
 	})
 	t.Log(errs)
 }
+
+func TestSuccess(t *testing.T) {
+	err := Retry(func() error {
+		t.Log("only saw once")
+		return nil
+	})
+	if err != nil {
+		t.Fatal("emm")
+	}
+	t.Log("double success")
+}
