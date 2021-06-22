@@ -19,9 +19,9 @@ var (
 	DefaultPeriod        = 100 * time.Millisecond
 )
 
-type errlist []error
+type ErrList []error
 
-func (e errlist) Error() string {
+func (e ErrList) Error() string {
 	sb := strings.Builder{}
 	for i, v := range e {
 		sb.WriteString(strconv.Itoa(i))
@@ -32,13 +32,8 @@ func (e errlist) Error() string {
 	return sb.String()
 }
 
-func (e errlist) Latest() error {
+func (e ErrList) Latest() error {
 	return e[len(e)-1]
-}
-
-func Retry(f func() error, opts ...option) errlist {
-	ctx := context.Background()
-	return RetryWithContext(ctx, func(ctx context.Context) error { return f() }, opts...)
 }
 
 type rego struct {
@@ -88,7 +83,12 @@ func WithTimes(times int) option {
 	}
 }
 
-func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, opts ...option) errlist {
+func Retry(f func() error, opts ...option) ErrList {
+	ctx := context.Background()
+	return RetryWithContext(ctx, func(ctx context.Context) error { return f() }, opts...)
+}
+
+func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, opts ...option) ErrList {
 	rg := &rego{
 		maxTimes:      DefaultRetryTimes,
 		period:        DefaultPeriod,
