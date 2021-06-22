@@ -103,7 +103,7 @@ func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, op
 
 	ctx, cancel := context.WithCancel(ctx)
 	var (
-		errs  errlist
+		errs  ErrList
 		index int
 	)
 	withCtx := func() {
