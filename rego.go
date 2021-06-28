@@ -45,50 +45,50 @@ type rego struct {
 	resetDuration time.Duration
 }
 
-type option func(r *rego)
+type Option func(r *rego)
 
-func WithPeriod(period time.Duration) option {
+func WithPeriod(period time.Duration) Option {
 	return func(r *rego) {
 		r.period = period
 	}
 }
 
-func WithJitter(jitter float64) option {
+func WithJitter(jitter float64) Option {
 	return func(r *rego) {
 		r.jitter = jitter
 	}
 }
 
-func WithBackoffFector(backoffFactor float64) option {
+func WithBackoffFector(backoffFactor float64) Option {
 	return func(r *rego) {
 		r.backoffFector = backoffFactor
 	}
 }
 
-func WithSliding(sliding bool) option {
+func WithSliding(sliding bool) Option {
 	return func(r *rego) {
 		r.sliding = sliding
 	}
 }
 
-func WithResetDuration(reset time.Duration) option {
+func WithResetDuration(reset time.Duration) Option {
 	return func(r *rego) {
 		r.resetDuration = reset
 	}
 }
 
-func WithTimes(times int) option {
+func WithTimes(times int) Option {
 	return func(r *rego) {
 		r.maxTimes = times
 	}
 }
 
-func Retry(f func() error, opts ...option) ErrList {
+func Retry(f func() error, opts ...Option) ErrList {
 	ctx := context.Background()
 	return RetryWithContext(ctx, func(ctx context.Context) error { return f() }, opts...)
 }
 
-func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, opts ...option) ErrList {
+func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, opts ...Option) ErrList {
 	rg := &rego{
 		maxTimes:      DefaultRetryTimes,
 		period:        DefaultPeriod,
