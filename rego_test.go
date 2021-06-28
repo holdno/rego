@@ -27,3 +27,17 @@ func TestSuccess(t *testing.T) {
 	}
 	t.Log("double success")
 }
+
+func TestPanic(t *testing.T) {
+	var index int64
+	err := Retry(func() error {
+		index++
+		panic("panic")
+	}, WithTimes(3))
+
+	if err != nil && index == 3 {
+		t.Log("success with three panics:", err)
+		return
+	}
+	t.Log("some wrong")
+}

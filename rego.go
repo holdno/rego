@@ -107,6 +107,10 @@ func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, op
 		index int
 	)
 	withCtx := func() {
+		if index >= rg.maxTimes {
+			cancel()
+			return
+		}
 		defer func() {
 			index++
 			if r := recover(); r != nil {
@@ -116,9 +120,7 @@ func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, op
 		err := f(ctx)
 		if err != nil {
 			errs = append(errs, err)
-			if rg.maxTimes > index {
-				return
-			}
+			return
 		}
 		cancel()
 	}
