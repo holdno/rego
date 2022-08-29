@@ -37,12 +37,13 @@ func (e ErrList) Latest() error {
 }
 
 type rego struct {
-	maxTimes      int
-	period        time.Duration
-	jitter        float64
-	backoffFactor float64
-	sliding       bool
-	resetDuration time.Duration
+	maxTimes        int
+	period          time.Duration
+	jitter          float64
+	backoffFactor   float64
+	sliding         bool
+	resetDuration   time.Duration
+	onlyLatestError bool
 }
 
 type Option func(r *rego)
@@ -83,12 +84,18 @@ func WithTimes(times int) Option {
 	}
 }
 
-func Retry(f func() error, opts ...Option) ErrList {
+func WithLatestError() Option {
+	return func(r *rego) {
+		r.onlyLatestError = true
+	}
+}
+
+func Retry(f func() error, opts ...Option) error {
 	ctx := context.Background()
 	return RetryWithContext(ctx, func(ctx context.Context) error { return f() }, opts...)
 }
 
-func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, opts ...Option) ErrList {
+func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, opts ...Option) error {
 	rg := &rego{
 		maxTimes:      DefaultRetryTimes,
 		period:        DefaultPeriod,
@@ -126,5 +133,11 @@ func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, op
 	}
 
 	wait.BackoffUntil(withCtx, wait.NewExponentialBackoffManager(rg.period, 0, rg.resetDuration, rg.backoffFactor, rg.jitter, &clock.RealClock{}), rg.sliding, ctx.Done())
-	return errs
+	if len(errs) > 0 {
+		if rg.onlyLatestError {
+			return errs[len(errs)-1]
+		}
+		return errs
+	}
+	return nil
 }
