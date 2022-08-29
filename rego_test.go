@@ -2,9 +2,18 @@ package rego
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 )
+
+func TestBackoff(t *testing.T) {
+	err := Retry(func() error {
+		t.Log(time.Now().Unix())
+		return errors.New("fake error")
+	}, WithBackoffFector(2), WithPeriod(time.Second), WithResetDuration(time.Minute))
+	t.Log(err)
+}
 
 func TestRetry(t *testing.T) {
 	beforeTime := time.Now()

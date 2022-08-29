@@ -40,7 +40,7 @@ type rego struct {
 	maxTimes      int
 	period        time.Duration
 	jitter        float64
-	backoffFector float64
+	backoffFactor float64
 	sliding       bool
 	resetDuration time.Duration
 }
@@ -61,7 +61,7 @@ func WithJitter(jitter float64) Option {
 
 func WithBackoffFector(backoffFactor float64) Option {
 	return func(r *rego) {
-		r.backoffFector = backoffFactor
+		r.backoffFactor = backoffFactor
 	}
 }
 
@@ -93,7 +93,7 @@ func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, op
 		maxTimes:      DefaultRetryTimes,
 		period:        DefaultPeriod,
 		jitter:        DefaultJitter,
-		backoffFector: DefaultBackoffFactor,
+		backoffFactor: DefaultBackoffFactor,
 		resetDuration: DefaultResetDuration,
 	}
 
@@ -125,6 +125,6 @@ func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, op
 		cancel()
 	}
 
-	wait.BackoffUntil(withCtx, wait.NewExponentialBackoffManager(rg.period, 0, rg.resetDuration, rg.backoffFector, rg.jitter, &clock.RealClock{}), rg.sliding, ctx.Done())
+	wait.BackoffUntil(withCtx, wait.NewExponentialBackoffManager(rg.period, 0, rg.resetDuration, rg.backoffFactor, rg.jitter, &clock.RealClock{}), rg.sliding, ctx.Done())
 	return errs
 }
