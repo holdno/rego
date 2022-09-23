@@ -48,5 +48,34 @@ func TestPanic(t *testing.T) {
 		t.Log("success with three panics:", err)
 		return
 	}
-	t.Log("some wrong")
+	t.Fatal("should not success")
+}
+
+func TestReturnLatestErrorIfFail(t *testing.T) {
+	var index int64
+	err := Retry(func() error {
+		index++
+		panic("panic")
+	}, WithTimes(3), WithLatestError())
+
+	if err != nil && index == 3 {
+		t.Log("success with panic:", err)
+		return
+	}
+	t.Fatal("should not success")
+}
+
+func TestReturnNilIfRetrySuccess(t *testing.T) {
+	var index int64
+	err := Retry(func() error {
+		index++
+		if index > 1 {
+			return nil
+		}
+		panic("panic")
+	}, WithTimes(3), WithLatestError())
+
+	if err != nil || index != 2 {
+		t.Fatal("something went wrong", err, index)
+	}
 }
