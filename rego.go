@@ -135,7 +135,13 @@ func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, op
 	wait.BackoffUntil(withCtx, wait.NewExponentialBackoffManager(rg.period, 0, rg.resetDuration, rg.backoffFactor, rg.jitter, &clock.RealClock{}), rg.sliding, ctx.Done())
 	if len(errs) > 0 {
 		if rg.onlyLatestError {
-			return errs[len(errs)-1]
+			if len(errs) >= rg.maxTimes {
+				// failure
+				return errs[len(errs)-1]
+			} else {
+				// success
+				return nil
+			}
 		}
 		return errs
 	}
