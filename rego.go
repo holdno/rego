@@ -158,9 +158,8 @@ func RetryWithContext(ctx context.Context, f func(ctx context.Context) error, op
 	if rg.onlyLatestError {
 		if success {
 			return nil
-		} else {
-			return latest
 		}
+		return latest
 	}
 
 	if latest != nil {

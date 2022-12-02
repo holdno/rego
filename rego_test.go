@@ -13,17 +13,23 @@ func TestBackoff(t *testing.T) {
 		return errors.New("fake error")
 	}, WithBackoffFector(2), WithPeriod(time.Second), WithResetDuration(time.Minute))
 	t.Log(err)
+	if rv := err.(Result); rv.Succeed() {
+		t.Error("should not success")
+	}
 }
 
 func TestRetry(t *testing.T) {
 	beforeTime := time.Now()
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
-	errs := RetryWithContext(ctx, func(ctx context.Context) error {
+	err := RetryWithContext(ctx, func(ctx context.Context) error {
 		t.Log(time.Now().Sub(beforeTime))
 		beforeTime = time.Now()
 		panic("for retry")
 	})
-	t.Log(errs)
+	t.Log(err)
+	if rv := err.(Result); rv.Succeed() {
+		t.Error("should not success")
+	}
 }
 
 func TestSuccess(t *testing.T) {
@@ -77,5 +83,24 @@ func TestReturnNilIfRetrySuccess(t *testing.T) {
 
 	if err != nil || index != 2 {
 		t.Fatal("something went wrong", err, index)
+	}
+}
+
+func TestReturnIfRetrySuccess(t *testing.T) {
+	var index int64
+	err := Retry(func() error {
+		index++
+		if index > 1 {
+			return nil
+		}
+		panic("panic")
+	}, WithTimes(3))
+
+	if err == nil || index != 2 {
+		t.Fatal("something went wrong", err, index)
+	}
+
+	if rv := err.(Result); !rv.Succeed() {
+		t.Error("should success")
 	}
 }
